@@ -1,43 +1,90 @@
-# order_it.py
+#!/usr/bin/env python3
 
 import sys
-from bisect import bisect_left
 
 def min_operations(shuffled, original):
-    """
-    Compute the minimum number of cut-and-insert operations
-    required to transform shuffled into original.
-    """
-    # Map each instruction in original to its index
-    pos = {instr: i for i, instr in enumerate(original)}
+    N = len(shuffled)
+    start = tuple(shuffled)
+    target = tuple(original)
+    if start == target:
+        return 0
 
-    # Convert shuffled list into indices according to original order
-    mapped = [pos[instr] for instr in shuffled]
+    visited = {start}
+    queue = [(start, 0)]
+    head = 0
 
-    # Find length of Longest Increasing Subsequence (LIS)
-    lis = []
-    for x in mapped:
-        idx = bisect_left(lis, x)
-        if idx == len(lis):
-            lis.append(x)
-        else:
-            lis[idx] = x
+    while head < len(queue):
+        cur, cost = queue[head]
+        head += 1
+        cur_list = list(cur)
+        for i in range(N):
+            for j in range(i+1, N+1):
+                segment = cur_list[i:j]
+                rest = cur_list[:i] + cur_list[j:]
+                for k in range(len(rest)+1):
+                    new_list = rest[:k] + segment + rest[k:]
+                    new_t = tuple(new_list)
+                    if new_t == cur:
+                        continue
+                    if new_t == target:
+                        return cost + 1
+                    if new_t not in visited:
+                        visited.add(new_t)
+                        queue.append((new_t, cost+1))
+    return -1
 
-    # Minimum operations = N - LIS length
-    return len(shuffled) - len(lis)
+def read_nonempty_line():
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            return None
+        line = line.rstrip('\n')
+        if line.strip() != "":
+            return line
+    return None
 
 def main():
-    input_lines = sys.stdin.read().splitlines()
-    N = int(input_lines[0].strip())
+    line = read_nonempty_line()
+    if line is None:
+        return
+    try:
+        N = int(line.strip())
+    except:
+        return
 
-    shuffled_start = input_lines.index("shuffled") + 1
-    original_start = input_lines.index("original") + 1
+    while True:
+        line = read_nonempty_line()
+        if line is None:
+            return
+        if line.strip().lower() == "shuffled":
+            break
 
-    shuffled = input_lines[shuffled_start:shuffled_start + N]
-    original = input_lines[original_start:original_start + N]
+    shuffled = []
+    for _ in range(N):
+        s = sys.stdin.readline()
+        if not s:
+            s = ""
+        else:
+            s = s.rstrip('\n')
+        shuffled.append(s)
 
-    result = min_operations(shuffled, original)
-    print(result)
+    while True:
+        line = read_nonempty_line()
+        if line is None:
+            return
+        if line.strip().lower() == "original":
+            break
+
+    original = []
+    for _ in range(N):
+        s = sys.stdin.readline()
+        if not s:
+            s = ""
+        else:
+            s = s.rstrip('\n')
+        original.append(s)
+
+    print(min_operations(shuffled, original))
 
 if __name__ == "__main__":
     main()
